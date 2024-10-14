@@ -9,6 +9,7 @@ const {
 const db = require("../db/connection");
 const request = require("supertest");
 const endpoints = require("../endpoints.json");
+require("jest-sorted");
 
 beforeEach(() => {
   return seed({ topicData, userData, articleData, commentData });
@@ -52,6 +53,7 @@ describe("GET /api/articles/:article_id", () => {
       topic: "mitch",
       author: "rogersop",
       body: "We all love Mitch and his wonderful, unique typing style. However, the volume of his typing has ALLEGEDLY burst another students eardrums, and they are now suing for damages",
+      created_at: "2020-05-06T01:14:00.000Z",
       article_img_url:
         "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
     };
@@ -59,7 +61,6 @@ describe("GET /api/articles/:article_id", () => {
       .get("/api/articles/4")
       .expect(200)
       .then((response) => {
-        console.log(response.body.article);
         expect(response.body.article.length).toBe(1);
         expect(response.body.article[0]).toMatchObject(expectedArticle);
       });
@@ -82,13 +83,31 @@ describe("GET /api/articles/:article_id", () => {
   });
 });
 
-describe("GET any incorrect endpoint", () => {
-  test("when passed an incorrect endpoint, returns 404 error with error message", () => {
+describe("GET /api/articles", () => {
+  test("200: sends an array of correctly formatted articles to the client in descending order based on their creation date", () => {
     return request(app)
-      .get("/topics")
-      .expect(404)
+      .get("/api/articles")
+      .expect(200)
       .then((response) => {
-        expect(response.body.message).toBe("Path not found.");
+        const articlesArray = response.body.articles;
+        console.log(articlesArray);
+        expect(articlesArray.length).toBe(13);
+
+        expect(articlesArray).toBeSortedBy("created_at", {
+          descending: true,
+          coerce: true,
+        });
+        articlesArray.forEach((article) => {
+          expect(typeof article.title).toBe("string");
+          expect(typeof article.topic).toBe("string");
+          expect(typeof article.author).toBe("string");
+          expect(typeof article.created_at).toBe("string");
+          expect(typeof article.votes).toBe("number");
+          expect(typeof article.article_img_url).toBe("string");
+          expect("body" in article).toBe(false);
+          expect("comment_count" in article).toBe(true);
+          expect(typeof Number(article.comment_count)).toBe("number");
+        });
       });
   });
 });

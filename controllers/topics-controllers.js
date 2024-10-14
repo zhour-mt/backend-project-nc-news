@@ -1,4 +1,8 @@
-const { selectTopics, selectArticleById, selectArticles } = require("../models/topics-models");
+const {
+  selectTopics,
+  selectArticleById,
+  selectArticles,
+} = require("../models/topics-models");
 const endpoints = require("../endpoints.json");
 const { request, response } = require("express");
 
@@ -33,6 +37,12 @@ exports.getArticleById = (request, response, next) => {
     });
 };
 
-exports.getArticles = (request, response, next) =>{
-    selectArticles()
-}
+exports.getArticles = (request, response, next) => {
+  selectArticles()
+    .then((articlesData) => {
+      response.status(200).send({ articles: articlesData });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};

@@ -1,9 +1,9 @@
-const { selectTopics } = require("../models/topics-models");
-const endpoints = require("../endpoints.json")
+const { selectTopics, selectArticleById } = require("../models/topics-models");
+const endpoints = require("../endpoints.json");
 
 exports.getEndpoints = (request, response, next) => {
-    return response.status(200).send({endpoints})
-}
+  return response.status(200).send({ endpoints });
+};
 
 exports.getTopics = (request, response, next) => {
   selectTopics()
@@ -15,3 +15,19 @@ exports.getTopics = (request, response, next) => {
     });
 };
 
+exports.getArticleById = (request, response, next) => {
+  const { article_id } = request.params;
+  selectArticleById(article_id)
+    .then((articleData) => {
+      if (articleData.length === 0) {
+        return Promise.reject({
+          status: 404,
+          message: "Article does not exist",
+        });
+      }
+      response.status(200).send({ article: articleData });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};

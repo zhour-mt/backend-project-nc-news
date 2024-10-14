@@ -58,7 +58,29 @@
         }
       ]
     }
+  },
+  "GET /api/articles/:article_id/comments": {
+    "description": "serves an array of all comments belonging to an article, in order of newest first",
+    "queries": [],
+    "exampleResponse": {
+      "articles": [
+        {
+          "comment_id": 2,
+          "body": "The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.",
+          "article_id": 1,
+          "author": "butter_bridge",
+          "votes": 14,
+          "created_at": "2020-10-31T03:03:00.000Z"
+        },
+        {
+          "comment_id": 3,
+          "body": "Replacing the quiet elegance of the dark suit and tie with the casual indifference of these muted earth tones is a form of fashion suicide, but, uh, call me crazy — onyou it works.",
+          "article_id": 1,
+          "author": "icellusedkars",
+          "votes": 100,
+          "created_at": "2020-03-01T01:13:00.000Z"
+        }
+      ]
+    }
   }
 }
-
-

@@ -1,6 +1,7 @@
 const {
   selectArticleById,
   selectArticles,
+  selectArticleComments,
 } = require("../models/articles-models");
 
 exports.getArticleById = (request, response, next) => {
@@ -30,4 +31,19 @@ exports.getArticles = (request, response, next) => {
     });
 };
 
-
+exports.getArticleComments = (request, response, next) => {
+  const { article_id } = request.params;
+  selectArticleComments(article_id)
+    .then((commentsData) => {
+      if (commentsData.length === 0) {
+        return Promise.reject({
+          status: 404,
+          message: "Article does not have any comments",
+        });
+      }
+      response.status(200).send({ comments: commentsData });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};

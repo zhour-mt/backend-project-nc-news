@@ -34,10 +34,12 @@ describe("GET /api/topics", () => {
 });
 
 describe("Any incorrect endpoint", () => {
-  return request(app)
-    .get("/topics")
-    .expect(404)
-    .then((response) => {
-      expect(response.body.msg).toBe('Path not found.');
-    });
+  test("when passed an incorrect endpoint, returns 404 error with error message", () => {
+    return request(app)
+      .get("/topics")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("Path not found.");
+      });
+  });
 });

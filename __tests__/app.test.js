@@ -90,9 +90,7 @@ describe("GET /api/articles", () => {
       .expect(200)
       .then((response) => {
         const articlesArray = response.body.articles;
-        console.log(articlesArray);
         expect(articlesArray.length).toBe(13);
-
         expect(articlesArray).toBeSortedBy("created_at", {
           descending: true,
           coerce: true,
@@ -111,4 +109,44 @@ describe("GET /api/articles", () => {
       });
   });
 });
- 
+
+describe("GET /api/articles/:article_id/comments", () => {
+  test("200: sends an array of comments for the given article_id", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then((response) => {
+        const commentsArray = response.body.comments;
+        console.log(commentsArray);
+        expect(commentsArray.length).toBe(11);
+        expect(commentsArray).toBeSortedBy("created_at", {
+          descending: true,
+          coerce: true,
+        });
+        commentsArray.forEach((comment) => {
+          expect(comment).toHaveProperty("body", expect.any(String));
+          expect(comment).toHaveProperty("author", expect.any(String));
+          expect(comment).toHaveProperty("created_at", expect.any(String));
+          expect(comment).toHaveProperty("article_id", expect.any(Number));
+        });
+      });
+  });
+  test("404: sends an appropriate status and error message when given a valid but non-existent id", () => {
+    return request(app)
+      .get("/api/articles/9999/comments")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.message).toBe(
+          "Article does not have any comments"
+        );
+      });
+  });
+  test("400: sends an appropriate status and error message when given an id of invalid data type", () => {
+    return request(app)
+      .get("/api/articles/thirteen/comments")
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Bad request.");
+      });
+  });
+});

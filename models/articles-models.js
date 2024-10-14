@@ -22,3 +22,10 @@ exports.selectArticles = () => {
   });
 };
 
+exports.selectArticleComments = (id) => {
+  return db
+    .query("SELECT * FROM comments WHERE article_id = $1;", [id])
+    .then((result) => {
+      return result.rows;
+    });
+};

@@ -4,6 +4,7 @@ const { getTopics, getEndpoints } = require("./controllers/topics-controllers");
 const {
   getArticleById,
   getArticles,
+  getArticleComments,
 } = require("./controllers/articles-controllers");
 
 app.get("/api", getEndpoints);
@@ -13,6 +14,8 @@ app.get("/api/topics", getTopics);
 app.get("/api/articles/:article_id", getArticleById);
 
 app.get("/api/articles", getArticles);
+
+app.get("/api/articles/:article_id/comments", getArticleComments);
 
 app.all("*", (request, response, next) => {
   response.status(404).send({ message: "Path not found." });
@@ -38,6 +41,3 @@ app.use((err, request, response, next) => {
 });
 
 module.exports = app;
-
-
-  

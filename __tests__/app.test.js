@@ -47,11 +47,21 @@ describe("GET /api/topics", () => {
 
 describe("GET /api/articles/:article_id", () => {
   test("200: sends an article object containing details of the required article", () => {
+    const expectedArticle = {
+      title: "Student SUES Mitch!",
+      topic: "mitch",
+      author: "rogersop",
+      body: "We all love Mitch and his wonderful, unique typing style. However, the volume of his typing has ALLEGEDLY burst another students eardrums, and they are now suing for damages",
+      article_img_url:
+        "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+    };
     return request(app)
       .get("/api/articles/4")
       .expect(200)
       .then((response) => {
+        console.log(response.body.article);
         expect(response.body.article.length).toBe(1);
+        expect(response.body.article[0]).toMatchObject(expectedArticle);
       });
   });
   test("404: sends an appropriate status and error message when given a valid but non-existent id", () => {

@@ -1,4 +1,9 @@
 const { selectTopics } = require("../models/topics-models");
+const endpoints = require("../endpoints.json")
+
+exports.getEndpoints = (request, response, next) => {
+    return response.status(200).send({endpoints})
+}
 
 exports.getTopics = (request, response, next) => {
   selectTopics()
@@ -9,3 +14,4 @@ exports.getTopics = (request, response, next) => {
       next(err);
     });
 };
+

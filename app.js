@@ -1,7 +1,10 @@
 const express = require("express");
 const app = express();
 const { getTopics, getEndpoints } = require("./controllers/topics-controllers");
-const { getArticleById, getArticles } = require("./controllers/articles-controllers");
+const {
+  getArticleById,
+  getArticles,
+} = require("./controllers/articles-controllers");
 
 app.get("/api", getEndpoints);
 
@@ -35,3 +38,6 @@ app.use((err, request, response, next) => {
 });
 
 module.exports = app;
+
+
+  

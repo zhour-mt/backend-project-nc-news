@@ -15,3 +15,4 @@ exports.getTopics = (request, response, next) => {
       next(err);
     });
 };
+

@@ -8,6 +8,7 @@ const {
 } = require("../db/data/test-data/index.js");
 const db = require("../db/connection");
 const request = require("supertest");
+const endpoints = require("../endpoints.json");
 
 beforeEach(() => {
   return seed({ topicData, userData, articleData, commentData });
@@ -15,6 +16,17 @@ beforeEach(() => {
 
 afterAll(() => {
   db.end();
+});
+
+describe("GET /api", () => {
+  test("200: responds with an object including details of all available endpoints", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.endpoints).toEqual(endpoints);
+      });
+  });
 });
 
 describe("GET /api/topics", () => {
@@ -33,7 +45,7 @@ describe("GET /api/topics", () => {
   });
 });
 
-describe("Any incorrect endpoint", () => {
+describe("GET any incorrect endpoint", () => {
   test("when passed an incorrect endpoint, returns 404 error with error message", () => {
     return request(app)
       .get("/topics")

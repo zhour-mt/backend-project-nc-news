@@ -1,5 +1,10 @@
-const { selectTopics, selectArticleById } = require("../models/topics-models");
+const {
+  selectTopics,
+  selectArticleById,
+  selectArticles,
+} = require("../models/topics-models");
 const endpoints = require("../endpoints.json");
+const { request, response } = require("express");
 
 exports.getEndpoints = (request, response, next) => {
   return response.status(200).send({ endpoints });
@@ -26,6 +31,16 @@ exports.getArticleById = (request, response, next) => {
         });
       }
       response.status(200).send({ article: articleData });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+exports.getArticles = (request, response, next) => {
+  selectArticles()
+    .then((articlesData) => {
+      response.status(200).send({ articles: articlesData });
     })
     .catch((err) => {
       next(err);

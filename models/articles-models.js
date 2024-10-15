@@ -55,7 +55,7 @@ exports.updateArticleById = (body, id) => {
     if (result.rows.length === 0) {
       return Promise.reject({ status: 404, message: "Article not found." });
     }
-    if (!inc_votes) {
+    if (!inc_votes || typeof inc_votes !== "number") {
       return Promise.reject({ status: 400, message: "Bad request." });
     }
     result.rows[0].votes += inc_votes;

@@ -236,8 +236,18 @@ describe("PATCH /api/articles/:article_id", () => {
         expect(response.body.updatedArticle[0].votes).toBe(63);
       });
   });
-  test("400: sends an appropriate status and error message when given a bad object", () => {
+  test("400: sends an appropriate status and error message when given an incorrect object key", () => {
     const badObject = { increase_votes: 63 };
+    return request(app)
+      .patch("/api/articles/4")
+      .send(badObject)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Bad request.");
+      });
+  });
+  test("400: sends an appropriate status and error message when given an object value of incorrect data type", () => {
+    const badObject = { inc_votes: "sixty-three" };
     return request(app)
       .patch("/api/articles/4")
       .send(badObject)

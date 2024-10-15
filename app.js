@@ -6,6 +6,7 @@ const {
   getArticles,
   getArticleComments,
   postComment,
+  patchArticleById,
 } = require("./controllers/articles-controllers");
 
 app.use(express.json());
@@ -16,11 +17,17 @@ app.get("/api/topics", getTopics);
 
 app.get("/api/articles/:article_id", getArticleById);
 
+app.patch("/api/articles/:article_id", patchArticleById)
+
 app.get("/api/articles", getArticles);
 
 app.get("/api/articles/:article_id/comments", getArticleComments);
 
 app.post("/api/articles/:article_id/comments", postComment);
+
+
+
+// ------------ ERROR MIDDLEWARE ---------------
 
 app.all("*", (request, response, next) => {
   response.status(404).send({ message: "Path not found." });
@@ -28,7 +35,7 @@ app.all("*", (request, response, next) => {
 });
 
 app.use((err, request, response, next) => {
-  if (err.code === "23502" || err.code === "22P02") {
+  if (err.code === "23502" || err.code === "22P02" || err.status === 400) {
     response.status(400).send({ message: "Bad request." });
   }
   next(err);
@@ -44,5 +51,6 @@ app.use((err, request, response, next) => {
 app.use((err, request, response, next) => {
   response.status(500).send({ message: "Internal Server Error." });
 });
+
 
 module.exports = app;

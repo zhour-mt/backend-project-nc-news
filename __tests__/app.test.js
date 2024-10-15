@@ -216,3 +216,52 @@ describe("POST /api/articles/:article_id/comments", () => {
       });
   });
 });
+
+describe("PATCH /api/articles/:article_id", () => {
+  test("201: updates votes on a specific article based on the votes passed in", () => {
+    const addVotes = { inc_votes: 63 };
+    return request(app)
+      .patch("/api/articles/4")
+      .send(addVotes)
+      .expect(200)
+      .then((response) => {
+        expect(response.body.updatedArticle[0]).toHaveProperty("article_id", expect.any(Number))
+        expect(response.body.updatedArticle[0]).toHaveProperty("votes", expect.any(Number));
+        expect(response.body.updatedArticle[0].votes).toBe(63);
+      });
+  });
+  test("400: sends an appropriate status and error message when given a bad object", () => {
+    const badObject = { increase_votes: 63 };
+    return request(app)
+      .patch("/api/articles/4")
+      .send(badObject)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Bad request.");
+      });
+  });
+  test("404: sends an appropriate status and error message when given a valid but non-existent id", () => {
+    const postComment = {
+      body: "Milk before cereal.",
+      author: "butter_bridge",
+    };
+    return request(app)
+      .patch("/api/articles/9999")
+      .send(postComment)
+      .expect(404)
+      .then((response) => {
+        expect(response.body.message).toBe("Article not found.");
+      });
+  });
+  test("400: sends an appropriate status and error message when given an id of invalid data type", () => {
+    const badObject = { inc_votes: 63 };
+    return request(app)
+      .patch("/api/articles/four")
+      .send(badObject)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Bad request.");
+      });
+  });
+});
+

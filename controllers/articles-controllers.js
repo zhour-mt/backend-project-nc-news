@@ -3,6 +3,7 @@ const {
   selectArticles,
   selectArticleComments,
   insertComment,
+  updateArticleById,
 } = require("../models/articles-models");
 
 exports.getArticleById = (request, response, next) => {
@@ -50,13 +51,23 @@ exports.getArticleComments = (request, response, next) => {
 };
 
 exports.postComment = (request, response, next) => {
-  const {body} = request
-  const {article_id} = request.params
+  const { body } = request;
+  const { article_id } = request.params;
   insertComment(body, article_id)
     .then((newComment) => {
-      response.status(201).send({comment: newComment})
+      response.status(201).send({ comment: newComment });
     })
     .catch((err) => {
-      next(err)
+      next(err);
     });
+};
+
+exports.patchArticleById = (request, response, next) => {
+  const { body } = request;
+  const { article_id } = request.params;
+  updateArticleById(body, article_id).then((updatedArticle) =>{
+    response.status(200).send({updatedArticle})
+  }).catch((err) => {
+    next(err)
+  });
 };

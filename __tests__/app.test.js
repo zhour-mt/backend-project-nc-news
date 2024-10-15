@@ -117,7 +117,6 @@ describe("GET /api/articles/:article_id/comments", () => {
       .expect(200)
       .then((response) => {
         const commentsArray = response.body.comments;
-        console.log(commentsArray);
         expect(commentsArray.length).toBe(11);
         expect(commentsArray).toBeSortedBy("created_at", {
           descending: true,
@@ -127,7 +126,8 @@ describe("GET /api/articles/:article_id/comments", () => {
           expect(comment).toHaveProperty("body", expect.any(String));
           expect(comment).toHaveProperty("author", expect.any(String));
           expect(comment).toHaveProperty("created_at", expect.any(String));
-          expect(comment).toHaveProperty("article_id", expect.any(Number));
+          expect(comment).toHaveProperty("comment_id", expect.any(Number));
+          expect(comment).toHaveProperty("votes", expect.any(Number));
         });
       });
   });
@@ -144,6 +144,72 @@ describe("GET /api/articles/:article_id/comments", () => {
   test("400: sends an appropriate status and error message when given an id of invalid data type", () => {
     return request(app)
       .get("/api/articles/thirteen/comments")
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Bad request.");
+      });
+  });
+});
+
+describe("POST /api/articles/:article_id/comments", () => {
+  test("201: inserts new comment to the article comments and sends the posted comment", () => {
+    const postComment = {
+      body: "Milk before cereal.",
+      author: "butter_bridge",
+    };
+    return request(app)
+      .post("/api/articles/2/comments")
+      .send(postComment)
+      .expect(201)
+      .then((response) => {
+        const newComment = {
+          comment_id: 19,
+          body: "Milk before cereal.",
+          article_id: 2,
+          author: "butter_bridge",
+          votes: 0,
+        };
+        expect(response.body.comment.length).toBe(1);
+        expect(response.body.comment[0]).toMatchObject(newComment);
+        expect(response.body.comment[0]).toHaveProperty(
+          "created_at",
+          expect.any(String)
+        );
+      });
+  });
+  test("400: responds with an appropriate status and error message when provided with a bad comment (missing required elements)", () => {
+    const badObject = {
+      body: "Need eye drops",
+    };
+    return request(app)
+      .post("/api/articles/2/comments")
+      .send(badObject)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Bad request.");
+      });
+  });
+  test("404: sends an appropriate status and error message when given a valid but non-existent id", () => {
+    const postComment = {
+      body: "Milk before cereal.",
+      author: "butter_bridge",
+    };
+    return request(app)
+      .post("/api/articles/9999/comments")
+      .send(postComment)
+      .expect(404)
+      .then((response) => {
+        expect(response.body.message).toBe("Article not found.");
+      });
+  });
+  test("400: sends an appropriate status and error message when given an id of invalid data type", () => {
+    const postComment = {
+      body: "Milk before cereal.",
+      author: "butter_bridge",
+    };
+    return request(app)
+      .post("/api/articles/thirteen/comments")
+      .send(postComment)
       .expect(400)
       .then((response) => {
         expect(response.body.message).toBe("Bad request.");

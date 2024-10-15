@@ -29,3 +29,21 @@ exports.selectArticleComments = (id) => {
       return result.rows;
     });
 };
+
+exports.insertComment = (body, id) => {
+  return db.query('SELECT * FROM articles WHERE article_id = $1;', [id]).then((result) =>{
+    if (result.rows.length === 0) {
+      return Promise.reject({ status: 404, message: "Article not found." });
+    }
+  }).then(() =>{
+    const queryString = `INSERT INTO comments (body, article_id, author)
+      VALUES ($1, $2, $3) RETURNING *;`;
+    return db.query(queryString, [
+      body.body,
+      id,
+      body.author
+    ])
+  }).then((result) =>{
+      return result.rows
+  })
+};

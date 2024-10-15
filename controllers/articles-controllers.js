@@ -1,3 +1,4 @@
+const { errorMonitor } = require("pg/lib/client");
 const {
   selectArticleById,
   selectArticles,
@@ -24,7 +25,8 @@ exports.getArticleById = (request, response, next) => {
 };
 
 exports.getArticles = (request, response, next) => {
-  selectArticles()
+  const {sort_by, order} = request.query
+  selectArticles(sort_by, order)
     .then((articlesData) => {
       response.status(200).send({ articles: articlesData });
     })

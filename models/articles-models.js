@@ -1,4 +1,5 @@
 const db = require("../db/connection");
+const format = require("pg-format")
 
 exports.selectArticleById = (id) => {
   return db
@@ -8,14 +9,30 @@ exports.selectArticleById = (id) => {
     });
 };
 
-exports.selectArticles = () => {
-  let queryString = `SELECT articles.author, articles.title, articles.topic, articles.created_at, articles.votes, articles.article_img_url, 
+exports.selectArticles = (sort_by = "created_at", order = "desc") => {
+  const lowerCaseOrder = order.toLowerCase()
+  const validSortBy = [
+    "author",
+    "title",
+    "topic",
+    "created_at",
+    "votes",
+    "article_img_url",
+    "comment_count",
+  ];
+  const validOrder = ["asc", "desc"];
+
+  if (!validSortBy.includes(sort_by) || !validOrder.includes(lowerCaseOrder)) {
+    return Promise.reject({ status: 400, message: "Bad Request." });
+  }
+
+  let queryString = format(`SELECT articles.author, articles.title, articles.topic, articles.created_at, articles.votes, articles.article_img_url, 
       COUNT(comments.article_id) 
       AS comment_count 
       FROM articles 
       LEFT JOIN comments ON articles.article_id = comments.article_id 
       GROUP BY articles.article_id 
-      ORDER BY articles.created_at DESC;`;
+      ORDER BY %I %s;`, sort_by, order)
 
   return db.query(queryString).then((result) => {
     return result.rows;

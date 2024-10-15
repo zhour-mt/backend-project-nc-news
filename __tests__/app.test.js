@@ -110,6 +110,61 @@ describe("GET /api/articles", () => {
   });
 });
 
+describe("GET /api/articles: Handling Queries", () => {
+  test("200: sends an array of correctly formatted articles in the order of categories decided in query", () => {
+    return request(app)
+      .get("/api/articles?sort_by=title&order=asc")
+      .expect(200)
+      .then((response) => {
+        const articlesArray = response.body.articles;
+        expect(articlesArray).toBeSortedBy("title");
+      });
+  });
+  test("200: sends an array of correctly formatted articles, defaulting to descending order of categories decided in query", () => {
+    return request(app)
+      .get("/api/articles?sort_by=author")
+      .expect(200)
+      .then((response) => {
+        const articlesArray = response.body.articles;
+        expect(articlesArray).toBeSortedBy("author", {descending: true});
+      });
+  });
+  test("200: sends an array of correctly formatted articles, defaulting to sorting by the created_at date", () => {
+    return request(app)
+      .get("/api/articles?order=asc")
+      .expect(200)
+      .then((response) => {
+        const articlesArray = response.body.articles;
+        expect(articlesArray).toBeSortedBy("created_at", {coerce: true});
+      });
+  });
+  test("200: order query is case insensitive", () => {
+    return request(app)
+      .get("/api/articles?order=ASC")
+      .expect(200)
+      .then((response) => {
+        const articlesArray = response.body.articles;
+        expect(articlesArray).toBeSortedBy("created_at", {coerce: true});
+      });
+  });
+  test("400: when an invalid sort-by query is sent through, responds with an error informing user", () => {
+    return request(app)
+      .get("/api/articles?sort_by=article_title")
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Bad request.");
+      });
+  });
+  test("400: when an invalid order query is sent through, responds with an error informing user", () => {
+    return request(app)
+      .get("/api/articles?order=diagonal")
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Bad request.");
+      });
+  });
+});
+
 describe("GET /api/articles/:article_id/comments", () => {
   test("200: sends an array of comments for the given article_id", () => {
     return request(app)

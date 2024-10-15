@@ -9,6 +9,7 @@ const {
   patchArticleById,
 } = require("./controllers/articles-controllers");
 const { deleteCommentById } = require("./controllers/comments-controllers");
+const { getUsers } = require("./controllers/users-controllers");
 
 app.use(express.json());
 
@@ -28,8 +29,7 @@ app.post("/api/articles/:article_id/comments", postComment);
 
 app.delete("/api/comments/:comment_id", deleteCommentById)
 
-
-
+app.get("/api/users", getUsers)
 // ------------ ERROR MIDDLEWARE ---------------
 
 app.all("*", (request, response, next) => {

@@ -123,5 +123,10 @@
         ]
       }
     }
+  }, 
+  "DELETE /api/comments/:comment_id": {
+    "description": "deletes the comment with the coment_id passed in. should respond with 204 and no content.",
+    "queries": [],
+    "exampleResponse": {}
   }
 }

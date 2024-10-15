@@ -111,6 +111,75 @@ describe("GET /api/articles", () => {
 });
 
 describe("GET /api/articles: Handling Queries", () => {
+  describe("Sort_by query", () =>{
+    test("200: sends an array of articles, defaulting to descending order of categories decided in query", () => {
+      return request(app)
+      .get("/api/articles?sort_by=author")
+      .expect(200)
+      .then((response) => {
+        const articlesArray = response.body.articles;
+        expect(articlesArray).toBeSortedBy("author", {descending: true});
+      });
+    });
+    test("400: when an invalid sort-by query is sent through, responds with an error informing user", () => {
+      return request(app)
+        .get("/api/articles?sort_by=article_title")
+        .expect(400)
+        .then((response) => {
+          expect(response.body.message).toBe("Bad request.");
+        });
+    });
+  })
+  describe("Order query", ()=>{
+    test("200: sends an array of articles, defaulting to sorting by the created_at date", () => {
+      return request(app)
+      .get("/api/articles?order=asc")
+      .expect(200)
+      .then((response) => {
+        const articlesArray = response.body.articles;
+        expect(articlesArray).toBeSortedBy("created_at", {coerce: true});
+      });
+    });
+    test("200: order query is case insensitive", () => {
+      return request(app)
+      .get("/api/articles?order=ASC")
+      .expect(200)
+      .then((response) => {
+        const articlesArray = response.body.articles;
+        expect(articlesArray).toBeSortedBy("created_at", {coerce: true});
+      });
+    });
+    test("400: when an invalid order query is sent through, responds with an error informing user", () => {
+      return request(app)
+        .get("/api/articles?order=diagonal")
+        .expect(400)
+        .then((response) => {
+          expect(response.body.message).toBe("Bad request.");
+        });
+    });
+  })
+  describe("Topic query",() => {
+    test("200: filters the articles by the topic specified in query", () => {
+      return request(app)
+      .get("/api/articles?topic=mitch")
+      .expect(200)
+      .then((response) => {
+        const articlesArray = response.body.articles;
+        expect(articlesArray.length).toBe(12)
+        articlesArray.forEach((article)=> {
+          expect(article.topic).toBe("mitch")
+        })
+      });
+    })
+    test("400: when an invalid topic query is sent through, responds with an error informing user", () => {
+      return request(app)
+        .get("/api/articles?topic=mitchell")
+        .expect(400)
+        .then((response) => {
+          expect(response.body.message).toBe("Bad request.");
+        });
+    });
+  })
   test("200: sends an array of correctly formatted articles in the order of categories decided in query", () => {
     return request(app)
       .get("/api/articles?sort_by=title&order=asc")
@@ -118,49 +187,6 @@ describe("GET /api/articles: Handling Queries", () => {
       .then((response) => {
         const articlesArray = response.body.articles;
         expect(articlesArray).toBeSortedBy("title");
-      });
-  });
-  test("200: sends an array of correctly formatted articles, defaulting to descending order of categories decided in query", () => {
-    return request(app)
-      .get("/api/articles?sort_by=author")
-      .expect(200)
-      .then((response) => {
-        const articlesArray = response.body.articles;
-        expect(articlesArray).toBeSortedBy("author", {descending: true});
-      });
-  });
-  test("200: sends an array of correctly formatted articles, defaulting to sorting by the created_at date", () => {
-    return request(app)
-      .get("/api/articles?order=asc")
-      .expect(200)
-      .then((response) => {
-        const articlesArray = response.body.articles;
-        expect(articlesArray).toBeSortedBy("created_at", {coerce: true});
-      });
-  });
-  test("200: order query is case insensitive", () => {
-    return request(app)
-      .get("/api/articles?order=ASC")
-      .expect(200)
-      .then((response) => {
-        const articlesArray = response.body.articles;
-        expect(articlesArray).toBeSortedBy("created_at", {coerce: true});
-      });
-  });
-  test("400: when an invalid sort-by query is sent through, responds with an error informing user", () => {
-    return request(app)
-      .get("/api/articles?sort_by=article_title")
-      .expect(400)
-      .then((response) => {
-        expect(response.body.message).toBe("Bad request.");
-      });
-  });
-  test("400: when an invalid order query is sent through, responds with an error informing user", () => {
-    return request(app)
-      .get("/api/articles?order=diagonal")
-      .expect(400)
-      .then((response) => {
-        expect(response.body.message).toBe("Bad request.");
       });
   });
 });

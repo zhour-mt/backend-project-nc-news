@@ -225,8 +225,14 @@ describe("PATCH /api/articles/:article_id", () => {
       .send(addVotes)
       .expect(200)
       .then((response) => {
-        expect(response.body.updatedArticle[0]).toHaveProperty("article_id", expect.any(Number))
-        expect(response.body.updatedArticle[0]).toHaveProperty("votes", expect.any(Number));
+        expect(response.body.updatedArticle[0]).toHaveProperty(
+          "article_id",
+          expect.any(Number)
+        );
+        expect(response.body.updatedArticle[0]).toHaveProperty(
+          "votes",
+          expect.any(Number)
+        );
         expect(response.body.updatedArticle[0].votes).toBe(63);
       });
   });
@@ -265,3 +271,29 @@ describe("PATCH /api/articles/:article_id", () => {
   });
 });
 
+describe("DELETE /api/comments/:comment_id", () => {
+  test("204: deletes comment of the given comment id, sends 'No content' to user", () => {
+    return request(app)
+      .delete("/api/comments/8")
+      .expect(204)
+      .then((response) => {
+        expect(response.body).toEqual({});
+      });
+  });
+  test("404: sends an appropriate status and error message when given a valid but non-existent id", () => {
+    return request(app)
+      .delete("/api/comments/999999")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.message).toBe("Comment not found.");
+      });
+  });
+  test("400: sends an appropriate status and error message when given an id of invalid data type", () => {
+    return request(app)
+      .delete("/api/comments/eight")
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Bad request.");
+      });
+  });
+});

@@ -3,7 +3,9 @@
 Hi! Welcome to my backend project.
 
 **`Introduction to the Project`**
-The aim of this project was to develop a RESTful API designed to manage and provide data, similar to any news site. The API provides endpoints for accessing resources such as articles, comments, topics, and users, which allows users to interact directly with the backend. 
+The aim of this project was to develop the backend of a web server called LetsRead.
+
+This server designed to manage and provide data, similar to any news site. The API provides endpoints for accessing resources such as articles, comments, topics, and users, which allows users to interact directly with the backend. 
 
 To access details about all available endpoints, please see the endpoints.json file available in the repo.
 

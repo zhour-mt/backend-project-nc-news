@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "setup-dbs": "psql -f ./db/setup.sql",
-    "seed-dev": "node ./db/seeds/run-seed.js",
+    "seed": "node ./db/seeds/run-seed.js",
     "test": "jest",
     "prepare": "husky install",
     "start": "node listen.js",
@@ -26,14 +26,14 @@
     "husky": "^8.0.2",
     "jest": "^27.5.1",
     "jest-extended": "^2.0.0",
-    "jest-sorted": "^1.0.15",
-    "pg-format": "^1.0.4"
+    "jest-sorted": "^1.0.15"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "nodemon": "^3.1.7",
     "pg": "^8.13.0",
+    "pg-format": "^1.0.4",
     "supertest": "^7.0.0"
   },
   "jest": {

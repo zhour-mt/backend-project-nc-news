@@ -17,7 +17,6 @@ exports.selectArticleById = (id) => {
     }
   }).then(() => {
     return db.query(queryString, [id]).then((result) => {
-      console.log(result.rows);
       return result.rows;
     });
   })

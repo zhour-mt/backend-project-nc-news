@@ -32,7 +32,7 @@ app.delete("/api/comments/:comment_id", deleteCommentById)
 app.get("/api/users", getUsers)
 // ------------ ERROR MIDDLEWARE ---------------
 
-app.all("*", (request, response, next) => {
+app.all("/*", (request, response, next) => {
   response.status(404).send({ message: "Path not found." });
   next(err);
 });

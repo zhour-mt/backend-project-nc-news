@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const apiRouter = require("express").Router();
 const { getTopics, getEndpoints } = require("./controllers/topics-controllers");
 const {
   getArticleById,
@@ -12,6 +13,10 @@ const { deleteCommentById } = require("./controllers/comments-controllers");
 const { getUsers } = require("./controllers/users-controllers");
 
 app.use(express.json());
+
+apiRouter.get("/", (req, res) => {
+  res.status(200).send("All OK from /api");
+})
 
 app.get("/api", getEndpoints);
 

@@ -5,7 +5,7 @@ Hi! Welcome to my backend project.
 **`Introduction to the Project`**
 The aim of this project was to develop the backend of a web server called LetsRead.
 
-This server designed to manage and provide data, similar to any news site. The API provides endpoints for accessing resources such as articles, comments, topics, and users, which allows users to interact directly with the backend. 
+This server designed to manage and provide data, similar to any news site. The API provides endpoints for accessing resources such as articles, comments, topics, and users, which allows users to interact directly with the backend.
 
 To access details about all available endpoints, please see the endpoints.json file available in the repo.
 
@@ -19,28 +19,34 @@ Postgres version required: psql (PostgreSQL) 14.13
 
 **`Instructions for Cloning the Repository`**
 To clone and access the respository, use the following commands:
+
 ```
 git clone https://github.com/zhour-mt/backend-project-nc-news.git
 cd backend-project-nc-news
 ```
 
 **`Dependencies to Install`**
-Npm packages were installed to allow for the achieved functionality. 
+Npm packages were installed to allow for the achieved functionality.
 To install all packages used, use the following command:
+
 ```
 npm install
 ```
 
+If you wish to see more details, please see the package.json file at the "devDependencies" and "dependencies" sections.
+
 **`How to Seed Local Databases`**
 Use the following command:
+
 ```
 npm run seed
 ```
 
 **`How to run tests`**
-For the tests carried out, the jest, jest-sorted and supertest were installed to drive the development of this project. 
+For the tests carried out, the jest, jest-sorted and supertest were installed to drive the development of this project.
 
 To carry out the tests, use the following command:
+
 ```
 npm test
 ```

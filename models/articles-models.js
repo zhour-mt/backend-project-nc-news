@@ -1,16 +1,30 @@
 const db = require("../db/connection");
-const format = require("pg-format")
+const format = require("pg-format");
 
 exports.selectArticleById = (id) => {
-  return db
-    .query("SELECT * FROM articles WHERE article_id = $1", [id])
-    .then((result) => {
+  const idExists = `SELECT * FROM articles WHERE article_id = $1`
+
+  const queryString = `SELECT articles.*, 
+  COUNT(comments.article_id) AS comment_count 
+  FROM articles 
+  LEFT JOIN comments ON articles.article_id = comments.article_id 
+  WHERE articles.article_id = $1
+  GROUP BY articles.article_id;`;
+
+  return db.query(idExists, [id]).then((result) => {
+    if (result.rows.length === 0){
+      return Promise.reject({ status: 404, message: "Article does not exist." })
+    }
+  }).then(() => {
+    return db.query(queryString, [id]).then((result) => {
+      console.log(result.rows);
       return result.rows;
     });
+  })
 };
 
 exports.selectArticles = (sort_by = "created_at", order = "desc", topic) => {
-  const lowerCaseOrder = order.toLowerCase()
+  const lowerCaseOrder = order.toLowerCase();
   const validSortBy = [
     "author",
     "title",
@@ -21,43 +35,46 @@ exports.selectArticles = (sort_by = "created_at", order = "desc", topic) => {
     "comment_count",
   ];
   const validOrder = ["asc", "desc"];
-  const validTopic = []
-  const queryValues = []
-  let topicString = `SELECT topic FROM articles`
+  const validTopic = [];
+  const queryValues = [];
+  let topicString = `SELECT topic FROM articles`;
 
   if (!validSortBy.includes(sort_by) || !validOrder.includes(lowerCaseOrder)) {
     return Promise.reject({ status: 400, message: "Bad Request." });
   }
 
-  return db.query(topicString).then((result)=>{
-    result.rows.forEach((row) => {
-      validTopic.push(row.topic)
+  return db
+    .query(topicString)
+    .then((result) => {
+      result.rows.forEach((row) => {
+        validTopic.push(row.topic);
+      });
     })
-  }).then(()=> {
+    .then(() => {
       let queryString = `SELECT articles.author, articles.title, articles.topic, articles.created_at, articles.votes, articles.article_img_url, 
       COUNT(comments.article_id) AS comment_count 
       FROM articles 
-      LEFT JOIN comments ON articles.article_id = comments.article_id`
+      LEFT JOIN comments ON articles.article_id = comments.article_id`;
 
-      if (topic && !validTopic.includes(topic)){
+      if (topic && !validTopic.includes(topic)) {
         return Promise.reject({ status: 400, message: "Bad Request." });
       }
 
-      if (topic){
-        queryString += ` WHERE articles.topic = %L`
-        queryValues.push(topic)
+      if (topic) {
+        queryString += ` WHERE articles.topic = %L`;
+        queryValues.push(topic);
       }
-      queryValues.push(sort_by, lowerCaseOrder)
+      queryValues.push(sort_by, lowerCaseOrder);
 
-      queryString += ` GROUP BY articles.article_id ORDER BY %I %s;`
+      queryString += ` GROUP BY articles.article_id ORDER BY %I %s;`;
 
-      const formattedQuery = format(queryString, ...queryValues)
+      const formattedQuery = format(queryString, ...queryValues);
 
-      return db.query(formattedQuery)
-
-  }).then((result) => {
-    return result.rows
-  })
+      return db.query(formattedQuery);
+    })
+    .then((result) => {
+      return result.rows;
+    });
 };
 
 exports.selectArticleComments = (id) => {

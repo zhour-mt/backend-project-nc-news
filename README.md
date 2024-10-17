@@ -64,3 +64,9 @@ Please use the following instructions to help set up:
 3. In your .gitignore file, add the names of the files created to avoid pushing any sensitive information to GitHub.
 
 
+**That is all from me :)**
+If you have any questions or need any further assistance, feel free to reach out on the following:
+
+GitHub: @zhour-mt
+
+Happy coding!

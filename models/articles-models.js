@@ -1,3 +1,4 @@
+const { request } = require("express");
 const db = require("../db/connection");
 const format = require("pg-format");
 
@@ -181,3 +182,17 @@ exports.insertArticle = (body) => {
       return result.rows
     })
 };
+
+exports.removeArticle = (id) => {
+  const articleExists = `SELECT * FROM articles WHERE article_id = $1`
+  const deleteQuery = `DELETE FROM articles WHERE article_id = $1`
+
+  return db.query(articleExists, [id]).then((result) => {
+    if (result.rows.length === 0 ){
+      return Promise.reject({status: 404, message: "Article not found."})
+    }
+    return db.query(deleteQuery, [id])
+  }).then(() => {
+    return {}
+  })
+}

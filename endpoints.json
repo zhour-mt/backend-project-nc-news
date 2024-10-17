@@ -144,7 +144,7 @@
     }
   },
   "DELETE /api/comments/:comment_id": {
-    "description": "deletes the comment with the coment_id passed in. should respond with 204 and no content.",
+    "description": "deletes the comment with the comment_id passed in. should respond with 204 and no content.",
     "queries": [],
     "exampleResponse": {}
   },
@@ -216,5 +216,10 @@
       "slug": "coding",
       "description": "we luuuurve coding"
     }
+  },
+  "DELETE /api/articles/:article_id": {
+    "description": "deletes the article with the article_id passed in. should respond with 204 and no content.",
+    "queries": [],
+    "exampleResponse": {}
   }
 }

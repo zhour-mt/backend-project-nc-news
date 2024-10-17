@@ -710,3 +710,30 @@ describe("POST /api/topics", () => {
       });
   });
 });
+
+describe("DELETE /api/articles/:article_id", () => {
+  test("204: deletes article of the given article id, sends 'No content' to user", () => {
+    return request(app)
+      .delete("/api/articles/8")
+      .expect(204)
+      .then((response) => {
+        expect(response.body).toEqual({});
+      });
+  });
+  test("404: sends an appropriate status and error message when given a valid but non-existent id", () => {
+    return request(app)
+      .delete("/api/articles/999999")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.message).toBe("Article not found.");
+      });
+  });
+  test("400: sends an appropriate status and error message when given an id of invalid data type", () => {
+    return request(app)
+      .delete("/api/articles/eight")
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Bad request.");
+      });
+  });
+});

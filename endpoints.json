@@ -204,5 +204,17 @@
         }
       ]
     }
+  },
+  "POST /api/articles": {
+    "description": "serves an array, providing details about the topic posted.",
+    "queries": [],
+    "exampleBody": {
+      "slug": "coding",
+      "description": "we luuuurve coding"
+    },
+    "exampleResponse": {
+      "slug": "coding",
+      "description": "we luuuurve coding"
+    }
   }
 }

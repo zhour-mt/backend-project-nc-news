@@ -560,7 +560,7 @@ describe("POST /api/articles", () => {
             "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
           article_id: 14,
           votes: 0,
-          comment_count: "0"
+          comment_count: "0",
         };
         expect(response.body.article.length).toBe(1);
         expect(response.body.article[0]).toMatchObject(newArticle);
@@ -630,6 +630,80 @@ describe("POST /api/articles", () => {
     return request(app)
       .post("/api/articles")
       .send(badObject)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Bad request.");
+      });
+  });
+});
+
+describe("POST /api/topics", () => {
+  test("201: inserts new topic to the array of topics and responds with the posted topic", () => {
+    const postTopic = {
+      slug: "coding",
+      description: "we luuuurve coding",
+    };
+    return request(app)
+      .post("/api/topics")
+      .send(postTopic)
+      .expect(201)
+      .then((response) => {
+        const newTopic = {
+          slug: "coding",
+          description: "we luuuurve coding",
+        };
+        expect(response.body.topic.length).toBe(1);
+        expect(response.body.topic[0]).toMatchObject(newTopic);
+        expect(response.body.topic[0]).toHaveProperty(
+          "slug",
+          expect.any(String)
+        );
+        expect(response.body.topic[0]).toHaveProperty(
+          "description",
+          expect.any(String)
+        );
+      });
+  });
+  test("201: if an object is sent without a description, the topics object should still be created", () => {
+    const postTopic = {
+      slug: "coding",
+    };
+    return request(app)
+      .post("/api/topics")
+      .send(postTopic)
+      .expect(201)
+      .then((response) => {
+        const newTopic = {
+          slug: "coding",
+        };
+        expect(response.body.topic.length).toBe(1);
+        expect(response.body.topic[0]).toMatchObject(newTopic);
+        expect(response.body.topic[0]).toHaveProperty(
+          "slug",
+          expect.any(String)
+        );
+      });
+  });
+  test("400: returns error if bad object is passed in (i.e no slug)", () => {
+    const badObject = {
+      description: "we luuuurve coding",
+    };
+    return request(app)
+      .post("/api/topics")
+      .send(badObject)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Bad request.");
+      });
+  });
+  test("400: returns error if the topic passed in already exists", () => {
+    const postTopic = {
+      slug: "cats",
+      description: "not dogs",
+    };
+    return request(app)
+      .post("/api/topics")
+      .send(postTopic)
       .expect(400)
       .then((response) => {
         expect(response.body.message).toBe("Bad request.");

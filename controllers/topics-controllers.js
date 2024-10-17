@@ -1,4 +1,4 @@
-const { selectTopics } = require("../models/topics-models");
+const { selectTopics, insertTopic } = require("../models/topics-models");
 const endpoints = require("../endpoints.json");
 const { request, response } = require("express");
 
@@ -16,3 +16,13 @@ exports.getTopics = (request, response, next) => {
     });
 };
 
+exports.postTopic = (request, response, next) => {
+  const { body } = request;
+  insertTopic(body)
+    .then((newTopic) => {
+      response.status(201).send({topic: newTopic})
+    })
+    .catch((err) => {
+      next(err)
+    })
+};

@@ -9,6 +9,7 @@ const {
 const db = require("../db/connection");
 const request = require("supertest");
 const endpoints = require("../endpoints.json");
+const { idleTimeoutMillis } = require("pg/lib/defaults.js");
 require("jest-sorted");
 
 beforeEach(() => {
@@ -414,6 +415,224 @@ describe("GET /api/users", () => {
           expect(user).toHaveProperty("name", expect.any(String));
           expect(user).toHaveProperty("avatar_url", expect.any(String));
         });
+      });
+  });
+});
+
+describe("GET /api/users/:username", () => {
+  test("200: sends an array of correctly formatted users to the client", () => {
+    return request(app)
+      .get("/api/users/lurker")
+      .expect(200)
+      .then((response) => {
+        const { user } = response.body;
+        expect(user.length).toBe(1);
+        expect(user[0]).toHaveProperty("username", expect.any(String));
+        expect(user[0]).toHaveProperty("avatar_url", expect.any(String));
+        expect(user[0]).toHaveProperty("name", expect.any(String));
+      });
+  });
+  test("404: sends an appropriate status and error message when given a non existent username", () => {
+    return request(app)
+      .get("/api/users/lurkingeveryday")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.message).toBe("User not found.");
+      });
+  });
+});
+
+describe("PATCH /api/comments/:comment_id", () => {
+  test("201: updates votes on a specific comment based on the votes passed in", () => {
+    const addVotes = { inc_votes: 63 };
+    return request(app)
+      .patch("/api/comments/4")
+      .send(addVotes)
+      .expect(200)
+      .then((response) => {
+        const { updatedComment } = response.body;
+        expect(updatedComment[0]).toHaveProperty("body", expect.any(String));
+        expect(updatedComment[0]).toHaveProperty("votes", expect.any(Number));
+        expect(updatedComment[0].votes).toBe(-37);
+      });
+  });
+  test("400: sends an appropriate status and error message when given an incorrect object key", () => {
+    const badObject = { increase_votes: 63 };
+    return request(app)
+      .patch("/api/comments/4")
+      .send(badObject)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Bad request.");
+      });
+  });
+  test("400: sends an appropriate status and error message when given an object value of incorrect data type", () => {
+    const badObject = { inc_votes: "sixty-three" };
+    return request(app)
+      .patch("/api/comments/4")
+      .send(badObject)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Bad request.");
+      });
+  });
+  test("404: sends an appropriate status and error message when given a valid but non-existent id", () => {
+    const addVotes = { inc_votes: 63 };
+    return request(app)
+      .patch("/api/comments/9999999")
+      .send(addVotes)
+      .expect(404)
+      .then((response) => {
+        expect(response.body.message).toBe("Comment not found.");
+      });
+  });
+  test("400: sends an appropriate status and error message when given an id of invalid data type", () => {
+    const badObject = { inc_votes: 63 };
+    return request(app)
+      .patch("/api/comments/four")
+      .send(badObject)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Bad request.");
+      });
+  });
+});
+
+describe("POST /api/articles", () => {
+  test("201: inserts new article to the array of articles and responds with the posted article", () => {
+    const postArticle = {
+      author: "butter_bridge",
+      title: "Dark mode or light mode? A controversial topic.",
+      body: "Light mode. I don't want to hear it",
+      topic: "cats",
+      article_img_url:
+        "https://www.hp.com/us-en/shop/app/assets/images/uploads/prod/What%20is%20Dark%20Mode%20and%20How%20to%20Turn%20it%20On%20or%20Off1648514558189227.jpg",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(postArticle)
+      .expect(201)
+      .then((response) => {
+        const newArticle = {
+          author: "butter_bridge",
+          title: "Dark mode or light mode? A controversial topic.",
+          body: "Light mode. I don't want to hear it",
+          topic: "cats",
+          article_img_url:
+            "https://www.hp.com/us-en/shop/app/assets/images/uploads/prod/What%20is%20Dark%20Mode%20and%20How%20to%20Turn%20it%20On%20or%20Off1648514558189227.jpg",
+          article_id: 14,
+          votes: 0,
+        };
+        expect(response.body.article.length).toBe(1);
+        expect(response.body.article[0]).toMatchObject(newArticle);
+        expect(response.body.article[0]).toHaveProperty(
+          "created_at",
+          expect.any(String)
+        );
+        expect(response.body.article[0]).toHaveProperty(
+          "votes",
+          expect.any(Number)
+        );
+        expect(response.body.article[0]).toHaveProperty(
+          "comment_count",
+          expect.any(String)
+        );
+      });
+  });
+  test("201: if no image_url is provided, defaults to a default url", () => {
+    const postArticle = {
+      author: "butter_bridge",
+      title: "Dark mode or light mode? A controversial topic.",
+      body: "Light mode. I don't want to hear it",
+      topic: "cats",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(postArticle)
+      .expect(201)
+      .then((response) => {
+        const newArticle = {
+          author: "butter_bridge",
+          title: "Dark mode or light mode? A controversial topic.",
+          body: "Light mode. I don't want to hear it",
+          topic: "cats",
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          article_id: 14,
+          votes: 0,
+          comment_count: "0"
+        };
+        expect(response.body.article.length).toBe(1);
+        expect(response.body.article[0]).toMatchObject(newArticle);
+      });
+  });
+  test("201: if the given topic does not exist in topic list, creates new topic and posts the article as normal", () => {
+    const postArticle = {
+      author: "butter_bridge",
+      title: "Dark mode or light mode? A controversial topic.",
+      body: "Light mode. I don't want to hear it",
+      topic: "coding",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(postArticle)
+      .expect(201)
+      .then((response) => {
+        const newArticle = {
+          author: "butter_bridge",
+          title: "Dark mode or light mode? A controversial topic.",
+          body: "Light mode. I don't want to hear it",
+          topic: "coding",
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          article_id: 14,
+          votes: 0,
+        };
+        expect(response.body.article.length).toBe(1);
+        expect(response.body.article[0]).toMatchObject(newArticle);
+        expect(response.body.article[0]).toHaveProperty(
+          "created_at",
+          expect.any(String)
+        );
+        expect(response.body.article[0]).toHaveProperty(
+          "votes",
+          expect.any(Number)
+        );
+      });
+  });
+  test("400: responds with an appropriate status and error message when provided an article made by someone that is not an existing user", () => {
+    const badObject = {
+      author: "cheese-strings",
+      title: "Dark mode or light mode? A controversial topic.",
+      body: "Light mode. I don't want to hear it",
+      topic: "cats",
+      article_img_url:
+        "https://www.hp.com/us-en/shop/app/assets/images/uploads/prod/What%20is%20Dark%20Mode%20and%20How%20to%20Turn%20it%20On%20or%20Off1648514558189227.jpg",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(badObject)
+      .expect(404)
+      .then((response) => {
+        expect(response.body.message).toBe(
+          "User account does not exist. Please make an account."
+        );
+      });
+  });
+  test("400: responds with an appropriate status and error message when provided with a bad comment (missing required elements)", () => {
+    const badObject = {
+      author: "butter_bridge",
+      title: "Dark mode or light mode? A controversial topic.",
+      topic: "cats",
+      article_img_url:
+        "https://www.hp.com/us-en/shop/app/assets/images/uploads/prod/What%20is%20Dark%20Mode%20and%20How%20to%20Turn%20it%20On%20or%20Off1648514558189227.jpg",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(badObject)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Bad request.");
       });
   });
 });

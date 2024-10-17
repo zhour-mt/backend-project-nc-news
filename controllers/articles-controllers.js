@@ -5,6 +5,7 @@ const {
   selectArticleComments,
   insertComment,
   updateArticleById,
+  insertArticle,
 } = require("../models/articles-models");
 
 exports.getArticleById = (request, response, next) => {
@@ -25,7 +26,7 @@ exports.getArticleById = (request, response, next) => {
 };
 
 exports.getArticles = (request, response, next) => {
-  const {sort_by, order, topic} = request.query
+  const { sort_by, order, topic } = request.query;
   selectArticles(sort_by, order, topic)
     .then((articlesData) => {
       response.status(200).send({ articles: articlesData });
@@ -67,9 +68,22 @@ exports.postComment = (request, response, next) => {
 exports.patchArticleById = (request, response, next) => {
   const { body } = request;
   const { article_id } = request.params;
-  updateArticleById(body, article_id).then((updatedArticle) =>{
-    response.status(200).send({updatedArticle})
-  }).catch((err) => {
-    next(err)
-  });
+  updateArticleById(body, article_id)
+    .then((updatedArticle) => {
+      response.status(200).send({ updatedArticle });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+exports.postArticle = (request, response, next) => {
+  const { body } = request;
+  insertArticle(body)
+    .then((newArticle) => {
+      response.status(201).send({article: newArticle})
+    })
+    .catch((err) => {
+      next(err)
+    });
 };

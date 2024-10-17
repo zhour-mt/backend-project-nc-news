@@ -2,7 +2,7 @@ const db = require("../db/connection");
 const format = require("pg-format");
 
 exports.selectArticleById = (id) => {
-  const idExists = `SELECT * FROM articles WHERE article_id = $1`
+  const idExists = `SELECT * FROM articles WHERE article_id = $1`;
 
   const queryString = `SELECT articles.*, 
   COUNT(comments.article_id) AS comment_count 
@@ -11,15 +11,21 @@ exports.selectArticleById = (id) => {
   WHERE articles.article_id = $1
   GROUP BY articles.article_id;`;
 
-  return db.query(idExists, [id]).then((result) => {
-    if (result.rows.length === 0){
-      return Promise.reject({ status: 404, message: "Article does not exist." })
-    }
-  }).then(() => {
-    return db.query(queryString, [id]).then((result) => {
-      return result.rows;
+  return db
+    .query(idExists, [id])
+    .then((result) => {
+      if (result.rows.length === 0) {
+        return Promise.reject({
+          status: 404,
+          message: "Article does not exist.",
+        });
+      }
+    })
+    .then(() => {
+      return db.query(queryString, [id]).then((result) => {
+        return result.rows;
+      });
     });
-  })
 };
 
 exports.selectArticles = (sort_by = "created_at", order = "desc", topic) => {
@@ -115,4 +121,63 @@ exports.updateArticleById = (body, id) => {
     result.rows[0].votes += inc_votes;
     return result.rows;
   });
+};
+
+exports.insertArticle = (body) => {
+  let article_img_url =
+    "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700";
+  if (body.article_img_url) {
+    article_img_url = body.article_img_url;
+  }
+  const topicExists = format(
+    `SELECT * FROM topics WHERE slug = %L`,
+    body.topic
+  );
+  const authorExists = format(
+    `SELECT * FROM users WHERE username = %L`,
+    body.author
+  );
+
+  return Promise.all([db.query(authorExists), db.query(topicExists)])
+    .then(([authorExists, topicExists]) => {
+      if (authorExists.rows.length === 0) {
+        return Promise.reject({
+          status: 404,
+          message: "User account does not exist. Please make an account.",
+        });
+      }
+      if (topicExists.rows.length === 0) {
+        const insertTopicQuery = format(
+          "INSERT INTO topics (slug) VALUES (%L)",
+          body.topic
+        );
+        return db.query(insertTopicQuery);
+      }
+    })
+    .then(() => {
+      const insertArticleQuery = `INSERT INTO articles ( author, title, body, topic, article_img_url) 
+    VALUES ($1, $2, $3, $4, $5) RETURNING *;`;
+      const queryValues = [
+        body.author,
+        body.title,
+        body.body,
+        body.topic,
+        article_img_url,
+      ];
+
+      return db.query(insertArticleQuery, queryValues);
+    })
+    .then((result) => {
+      const newArticle = result.rows[0];
+      const addCommentCount = format(`SELECT articles.*, 
+      COUNT(comments.article_id) AS comment_count 
+      FROM articles 
+      LEFT JOIN comments ON articles.article_id = comments.article_id
+      WHERE articles.article_id = %L
+      GROUP BY articles.article_id;`, [newArticle.article_id])
+
+      return db.query(addCommentCount)
+    }).then((result) => {
+      return result.rows
+    })
 };

@@ -8,6 +8,7 @@ const {
   insertArticle,
   removeArticle,
 } = require("../models/articles-models");
+const { totalCount } = require("../db/connection");
 
 exports.getArticleById = (request, response, next) => {
   const { article_id } = request.params;
@@ -27,10 +28,11 @@ exports.getArticleById = (request, response, next) => {
 };
 
 exports.getArticles = (request, response, next) => {
-  const { sort_by, order, topic } = request.query;
-  selectArticles(sort_by, order, topic)
+  const { sort_by, order, topic, limit, page } = request.query;
+  selectArticles(sort_by, order, topic, limit, page)
     .then((articlesData) => {
-      response.status(200).send({ articles: articlesData });
+      response.status(200).send({ articles: articlesData[0], totalCount: articlesData[1]});
+ 
     })
     .catch((err) => {
       next(err);
@@ -39,14 +41,9 @@ exports.getArticles = (request, response, next) => {
 
 exports.getArticleComments = (request, response, next) => {
   const { article_id } = request.params;
-  selectArticleComments(article_id)
+  const {limit, page} = request.query
+  selectArticleComments(article_id, limit, page)
     .then((commentsData) => {
-      if (commentsData.length === 0) {
-        return Promise.reject({
-          status: 404,
-          message: "Article does not have any comments",
-        });
-      }
       response.status(200).send({ comments: commentsData });
     })
     .catch((err) => {
@@ -97,3 +94,4 @@ exports.deleteArticleById = (request, response, next) => {
     next(err)
   })
 }
+

@@ -59,7 +59,7 @@ describe("GET /api/articles/:article_id", () => {
         "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
     };
     return request(app)
-      .get("/api/articles/4")
+    .get("/api/articles/4")
       .expect(200)
       .then((response) => {
         const article = response.body.article;
@@ -85,7 +85,7 @@ describe("GET /api/articles/:article_id", () => {
       .then((response) => {
         expect(response.body.message).toBe("Article does not exist.");
       });
-  });
+    });
   test("400: sends an appropriate status and error message when given an id of invalid data type", () => {
     return request(app)
       .get("/api/articles/twelve")
@@ -99,11 +99,11 @@ describe("GET /api/articles/:article_id", () => {
 describe("GET /api/articles", () => {
   test("200: sends an array of correctly formatted articles to the client in descending order based on their creation date", () => {
     return request(app)
-      .get("/api/articles")
+    .get("/api/articles")
       .expect(200)
       .then((response) => {
         const articlesArray = response.body.articles;
-        expect(articlesArray.length).toBe(13);
+        expect(articlesArray.length).toBe(10);
         expect(articlesArray).toBeSortedBy("created_at", {
           descending: true,
           coerce: true,
@@ -124,6 +124,15 @@ describe("GET /api/articles", () => {
 });
 
 describe("GET /api/articles - Handling Queries", () => {
+  test("200: sends an array of correctly formatted articles in the order of categories decided in query", () => {
+    return request(app)
+      .get("/api/articles?sort_by=title&order=asc")
+      .expect(200)
+      .then((response) => {
+        const articlesArray = response.body.articles;
+        expect(articlesArray).toBeSortedBy("title");
+      });
+  });
   describe("Sort_by query", () => {
     test("200: sends an array of articles, defaulting to descending order of categories decided in query", () => {
       return request(app)
@@ -133,7 +142,7 @@ describe("GET /api/articles - Handling Queries", () => {
           const articlesArray = response.body.articles;
           expect(articlesArray).toBeSortedBy("author", { descending: true });
         });
-    });
+      });
     test("400: when an invalid sort-by query is sent through, responds with an error informing user", () => {
       return request(app)
         .get("/api/articles?sort_by=article_title")
@@ -178,7 +187,7 @@ describe("GET /api/articles - Handling Queries", () => {
         .expect(200)
         .then((response) => {
           const articlesArray = response.body.articles;
-          expect(articlesArray.length).toBe(12);
+          expect(articlesArray.length).toBe(10);
           articlesArray.forEach((article) => {
             expect(article.topic).toBe("mitch");
           });
@@ -193,14 +202,62 @@ describe("GET /api/articles - Handling Queries", () => {
         });
     });
   });
-  test("200: sends an array of correctly formatted articles in the order of categories decided in query", () => {
-    return request(app)
-      .get("/api/articles?sort_by=title&order=asc")
-      .expect(200)
-      .then((response) => {
-        const articlesArray = response.body.articles;
-        expect(articlesArray).toBeSortedBy("title");
-      });
+  describe("Limit query", () => {
+    test("200: sends an array of the articles decided in the limit", () => {
+      return request(app)
+        .get("/api/articles?limit=5&page=2")
+        .expect(200)
+        .then((response) => {
+          const firstArticleOnPage =  {
+            article_id: 5,
+            author: 'rogersop',
+            title: 'UNCOVERED: catspiracy to bring down democracy',
+            topic: 'cats',
+            created_at: '2020-08-03T13:14:00.000Z',
+            votes: 0,
+            article_img_url: 'https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700',
+            comment_count: '2'
+          }
+          const articlesArray = response.body.articles;
+          expect(articlesArray.length).toBe(5);
+          expect(articlesArray[0]).toMatchObject(firstArticleOnPage)
+        });
+    });
+    test("400: when an invalid page limit is sent through, returns error", () => {
+      return request(app)
+        .get("/api/articles?limit=ten")
+        .expect(400)
+        .then((response) => {
+          expect(response.body.message).toBe("Bad request.");
+        });
+    });
+  });
+  describe("Page query", () => {
+    test("200: sends an array of the articles in the selected page, defaulting to a limit of 10 articles per page", () => {
+      return request(app)
+        .get("/api/articles?page=1")
+        .expect(200)
+        .then((response) => {
+          const articlesArray = response.body.articles;
+          expect(articlesArray.length).toBe(10);
+        });
+    });
+    test("404: when an non existent page query is sent through, returns error", () => {
+      return request(app)
+        .get("/api/articles?page=5")
+        .expect(404)
+        .then((response) => {
+          expect(response.body.message).toBe("Article page not found.");
+        });
+    });
+    test("400: when a page query of invalid data type is sent through, returns error", () => {
+      return request(app)
+        .get("/api/articles?page=four")
+        .expect(400)
+        .then((response) => {
+          expect(response.body.message).toBe("Bad request.");
+        });
+    });
   });
 });
 
@@ -211,7 +268,7 @@ describe("GET /api/articles/:article_id/comments", () => {
       .expect(200)
       .then((response) => {
         const commentsArray = response.body.comments;
-        expect(commentsArray.length).toBe(11);
+        expect(commentsArray.length).toBe(10);
         expect(commentsArray).toBeSortedBy("created_at", {
           descending: true,
           coerce: true,
@@ -231,7 +288,7 @@ describe("GET /api/articles/:article_id/comments", () => {
       .expect(404)
       .then((response) => {
         expect(response.body.message).toBe(
-          "Article does not have any comments"
+          "Article does not have any comments."
         );
       });
   });
@@ -244,6 +301,64 @@ describe("GET /api/articles/:article_id/comments", () => {
       });
   });
 });
+
+describe("GET /api/articles/:article_id/comments - Handling Queries", () => {
+  describe("Limit query", () => {
+    test("200: sends an array of the articles decided in the limit", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=5&page=1")
+        .expect(200)
+        .then((response) => {
+          const firstCommentOnPage =  {
+            comment_id: 2,
+            body: 'The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.',
+            article_id: 1,
+            author: 'butter_bridge',
+            votes: 14,
+            created_at: '2020-10-31T03:03:00.000Z'
+          }
+          const commentsArray = response.body.comments;
+          expect(commentsArray.length).toBe(5);
+          expect(commentsArray[0]).toMatchObject(firstCommentOnPage)
+        });
+    });
+    test("400: when an invalid page limit is sent through, returns error", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=ten")
+        .expect(400)
+        .then((response) => {
+          expect(response.body.message).toBe("Bad request.");
+        });
+    });
+  });
+  describe("Page query", () => {
+    test("200: sends an array of the comments in the selected page, defaulting to a limit of 10 comments per page", () => {
+      return request(app)
+        .get("/api/articles/1/comments?page=1")
+        .expect(200)
+        .then((response) => {
+          const commentsArray = response.body.comments;
+          expect(commentsArray.length).toBe(10);
+        });
+    });
+    test("404: when a non existent page query is sent through, returns error", () => {
+      return request(app)
+        .get("/api/articles/1/comments?page=5")
+        .expect(404)
+        .then((response) => {
+          expect(response.body.message).toBe("Comment page for article not found.");
+        });
+    });
+    test("400: when a page query of invalid data type is sent through, returns error", () => {
+      return request(app)
+        .get("/api/articles/1/comments?page=four")
+        .expect(400)
+        .then((response) => {
+          expect(response.body.message).toBe("Bad request.");
+        });
+    });
+  });
+})
 
 describe("POST /api/articles/:article_id/comments", () => {
   test("201: inserts new comment to the article comments and sends the posted comment", () => {

@@ -29,7 +29,13 @@ exports.selectArticleById = (id) => {
     });
 };
 
-exports.selectArticles = (sort_by = "created_at", order = "desc", topic) => {
+exports.selectArticles = (
+  sort_by = "created_at",
+  order = "desc",
+  topic,
+  limit = 10,
+  page = 1
+) => {
   const lowerCaseOrder = order.toLowerCase();
   const validSortBy = [
     "author",
@@ -45,7 +51,12 @@ exports.selectArticles = (sort_by = "created_at", order = "desc", topic) => {
   const queryValues = [];
   let topicString = `SELECT topic FROM articles`;
 
-  if (!validSortBy.includes(sort_by) || !validOrder.includes(lowerCaseOrder)) {
+  if (
+    !validSortBy.includes(sort_by) ||
+    !validOrder.includes(lowerCaseOrder) ||
+    isNaN(Number(limit)) ||
+    isNaN(Number(page))
+  ) {
     return Promise.reject({ status: 400, message: "Bad Request." });
   }
 
@@ -57,7 +68,7 @@ exports.selectArticles = (sort_by = "created_at", order = "desc", topic) => {
       });
     })
     .then(() => {
-      let queryString = `SELECT articles.author, articles.title, articles.topic, articles.created_at, articles.votes, articles.article_img_url, 
+      let queryString = `SELECT articles.article_id, articles.author, articles.title, articles.topic, articles.created_at, articles.votes, articles.article_img_url, 
       COUNT(comments.article_id) AS comment_count 
       FROM articles 
       LEFT JOIN comments ON articles.article_id = comments.article_id`;
@@ -80,14 +91,64 @@ exports.selectArticles = (sort_by = "created_at", order = "desc", topic) => {
     })
     .then((result) => {
       return result.rows;
+    })
+    .then((articles) => {
+      const paginatedArticles = pagination(limit, page, articles);
+      if (!paginatedArticles) {
+        return Promise.reject({
+          status: 404,
+          message: "Article page not found.",
+        });
+      }
+
+      return [pagination(limit, page, articles), articles.length];
     });
 };
 
-exports.selectArticleComments = (id) => {
+const pagination = (limit, page, resource) => {
+  const total_pages = Math.ceil(resource.length / limit);
+
+  const paginatedResource = [];
+
+  for (let i = 0; i < total_pages; i++) {
+    paginatedResource.push([]);
+    for (let j = 0; j < limit; j++) {
+      const resourceIndex = i * limit + j;
+      if (resource[resourceIndex] === undefined) {
+        continue;
+      }
+      paginatedResource[i].push(resource[resourceIndex]);
+    }
+  }
+
+  return paginatedResource[page - 1];
+};
+
+exports.selectArticleComments = (id, limit = 10, page = 1) => {
+  if (isNaN(Number(limit)) || isNaN(Number(page))) {
+    return Promise.reject({ status: 400, message: "Bad Request." });
+  }
   return db
     .query("SELECT * FROM comments WHERE article_id = $1;", [id])
     .then((result) => {
+      if (result.rows.length === 0) {
+        return Promise.reject({
+          status: 404,
+          message: "Article does not have any comments.",
+        });
+      }
       return result.rows;
+    })
+    .then((comments) => {
+      const paginatedComments = pagination(limit, page, comments);
+      if (!paginatedComments) {
+        return Promise.reject({
+          status: 404,
+          message: "Comment page for article not found.",
+        });
+      }
+
+      return paginatedComments;
     });
 };
 
@@ -170,29 +231,36 @@ exports.insertArticle = (body) => {
     })
     .then((result) => {
       const newArticle = result.rows[0];
-      const addCommentCount = format(`SELECT articles.*, 
+      const addCommentCount = format(
+        `SELECT articles.*, 
       COUNT(comments.article_id) AS comment_count 
       FROM articles 
       LEFT JOIN comments ON articles.article_id = comments.article_id
       WHERE articles.article_id = %L
-      GROUP BY articles.article_id;`, [newArticle.article_id])
+      GROUP BY articles.article_id;`,
+        [newArticle.article_id]
+      );
 
-      return db.query(addCommentCount)
-    }).then((result) => {
-      return result.rows
+      return db.query(addCommentCount);
     })
+    .then((result) => {
+      return result.rows;
+    });
 };
 
 exports.removeArticle = (id) => {
-  const articleExists = `SELECT * FROM articles WHERE article_id = $1`
-  const deleteQuery = `DELETE FROM articles WHERE article_id = $1`
+  const articleExists = `SELECT * FROM articles WHERE article_id = $1`;
+  const deleteQuery = `DELETE FROM articles WHERE article_id = $1`;
 
-  return db.query(articleExists, [id]).then((result) => {
-    if (result.rows.length === 0 ){
-      return Promise.reject({status: 404, message: "Article not found."})
-    }
-    return db.query(deleteQuery, [id])
-  }).then(() => {
-    return {}
-  })
-}
+  return db
+    .query(articleExists, [id])
+    .then((result) => {
+      if (result.rows.length === 0) {
+        return Promise.reject({ status: 404, message: "Article not found." });
+      }
+      return db.query(deleteQuery, [id]);
+    })
+    .then(() => {
+      return {};
+    });
+};

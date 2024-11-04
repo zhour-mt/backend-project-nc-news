@@ -28,8 +28,8 @@
     }
   },
   "GET /api/articles": {
-    "description": "serves an array of all articles",
-    "queries": ["author", "topic", "sort_by", "order"],
+    "description": "serves an array of all articles. ",
+    "queries": ["author", "topic", "sort_by", "order", "limit", "page"],
     "exampleResponse": {
       "articles": [
         {
@@ -80,7 +80,7 @@
   },
   "GET /api/articles/:article_id/comments": {
     "description": "serves an array of all comments belonging to an article, in order of newest first",
-    "queries": [],
+    "queries": ["limit", "page"],
     "exampleResponse": {
       "articles": [
         {

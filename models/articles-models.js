@@ -185,7 +185,7 @@ exports.updateArticleById = (body, id) => {
 
     const updateQuery =
       "UPDATE articles SET votes = $1 WHERE article_id = $2 RETURNING *";
-    return db.query(updateQuery, [updatedVotes, id]).then((updatedResult) => {
+    return db.query(updateQuery, [updatedVotes, id]).then((updatedResult) => { 
       return updatedResult.rows[0];
     });
   });

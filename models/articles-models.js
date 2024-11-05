@@ -180,8 +180,14 @@ exports.updateArticleById = (body, id) => {
     if (!inc_votes || typeof inc_votes !== "number") {
       return Promise.reject({ status: 400, message: "Bad request." });
     }
-    result.rows[0].votes += inc_votes;
-    return result.rows;
+
+    const updatedVotes = result.rows[0].votes + inc_votes;
+
+    const updateQuery =
+      "UPDATE articles SET votes = $1 WHERE article_id = $2 RETURNING *";
+    return db.query(updateQuery, [updatedVotes, id]).then((updatedResult) => {
+      return updatedResult.rows[0];
+    });
   });
 };
 

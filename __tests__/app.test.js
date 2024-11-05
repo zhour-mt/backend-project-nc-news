@@ -434,15 +434,15 @@ describe("PATCH /api/articles/:article_id", () => {
       .send(addVotes)
       .expect(200)
       .then((response) => {
-        expect(response.body.updatedArticle[0]).toHaveProperty(
+        expect(response.body.updatedArticle).toHaveProperty(
           "article_id",
           expect.any(Number)
         );
-        expect(response.body.updatedArticle[0]).toHaveProperty(
+        expect(response.body.updatedArticle).toHaveProperty(
           "votes",
           expect.any(Number)
         );
-        expect(response.body.updatedArticle[0].votes).toBe(63);
+        expect(response.body.updatedArticle.votes).toBe(63);
       });
   });
   test("400: sends an appropriate status and error message when given an incorrect object key", () => {
